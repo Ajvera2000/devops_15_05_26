@@ -1,66 +1,119 @@
-from flask import Flask
+from flask import Flask, request
 from datetime import datetime
 import calendar
 
 app = Flask(__name__)
 
-# Nueva versión corregida
-VERSION = "1.2.1"
+# Versión con corrección de f-strings
+VERSION = "1.3.1"
 
 @app.route("/")
 def inicio():
-    ahora = datetime.now()
-    fecha_texto = ahora.strftime("%A, %d de %B de %Y")
-    hora_texto = ahora.strftime("%H:%M:%S")
-    
-    # Generar el calendario base del mes actual
+    # 1. Obtener la fecha REAL de hoy (servirá para el reloj y para resaltar el día actual)
+    hoy = datetime.now()
+    hora_texto = hoy.strftime("%H:%M:%S")
+    fecha_hoy_texto = hoy.strftime("%A, %d de %B de %Y")
+
+    # 2. Capturar el año y mes que el usuario quiere ver desde la URL (por defecto, el actual)
+    ano_vista = request.args.get('year', default=hoy.year, type=int)
+    mes_vista = request.args.get('month', default=hoy.month, type=int)
+
+    # Validar que el mes esté entre 1 y 12
+    if mes_vista < 1 or mes_vista > 12:
+        mes_vista = hoy.month
+
+    # 3. Lógica de navegación de meses (controlar saltos de año en Enero y Diciembre)
+    if mes_vista == 1:
+        prev_mes = 12
+        prev_ano = ano_vista - 1
+    else:
+        prev_mes = mes_vista - 1
+        prev_ano = ano_vista
+
+    if mes_vista == 12:
+        next_mes = 1
+        next_ano = ano_vista + 1
+    else:
+        next_mes = mes_vista + 1
+        next_ano = ano_vista
+
+    # Lógica de navegación de años completos
+    prev_ano_solo = ano_vista - 1
+    next_ano_solo = ano_vista + 1
+
+    # 4. Generar la tabla HTML del calendario solicitado
     cal = calendar.HTMLCalendar(firstweekday=0)
-    calendario_html = cal.formatmonth(ahora.year, ahora.month)
+    calendario_html = cal.formatmonth(ano_vista, mes_vista)
     
-    # Inyectamos las clases de Bootstrap a la tabla generada
+    # Inyectar clases estilizadas de Bootstrap a la tabla
     calendario_html = calendario_html.replace(
         'class="month"', 
         'class="table table-borderless text-center m-0 align-middle"'
     )
 
-    # Estilos CSS separados para no generar conflictos con las llaves de las f-strings
+    # 5. Paleta de colores Premium (Diseño moderno "Cool Tech")
     estilos_css = """
     body {
-        background-color: #f4f6f9;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f1f5f9;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
     .gradient-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
         color: white;
     }
     .card {
         border: none;
-        border-radius: 15px;
-        transition: transform 0.2s;
+        border-radius: 16px;
+        background-color: #ffffff;
     }
-    .card:hover {
-        transform: translateY(-2px);
+    .btn-nav {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        transition: all 0.2s;
+    }
+    .btn-nav:hover {
+        background-color: #6366f1;
+        color: white;
+        border-color: #6366f1;
+    }
+    .btn-hoy {
+        background-color: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+    .btn-hoy:hover {
+        background-color: #059669;
+        color: white;
     }
     th.month {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #2a5298;
-        padding-bottom: 15px;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #312e81;
+        padding-bottom: 20px;
         text-transform: capitalize;
     }
     .table th {
-        color: #6c757d;
-        font-size: 0.85rem;
+        color: #94a3b8;
+        font-size: 0.8rem;
         font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .table td {
-        font-weight: 500;
+        font-weight: 600;
+        color: #334155;
         width: 45px;
         height: 45px;
     }
     .noday {
-        color: #dee2e6;
+        color: #cbd5e1 !important;
+    }
+    .credito-badge {
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        color: #38bdf8;
+        font-weight: 600;
+        letter-spacing: 0.5px;
     }
     """
 
@@ -70,7 +123,7 @@ def inicio():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dashboard Reloj y Calendario</title>
+        <title>Control Panel - Angelo Vera</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <style>
@@ -80,13 +133,16 @@ def inicio():
     <body>
 
         <div class="gradient-header py-4 mb-5 shadow-sm">
-            <div class="container d-flex justify-content-between align-items-center">
+            <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
                 <div>
-                    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-cpu-fill me-2"></i>DevOps Control Panel</h1>
-                    <small class="opacity-75">Estado del servidor: <span class="badge bg-success">Online</span></small>
+                    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-terminal-box me-2 text-info"></i>DevOps Dashboard</h1>
+                    <small class="opacity-75">Estado de la infraestructura: <span class="badge bg-success">Online</span></small>
                 </div>
-                <div>
-                    <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold shadow-sm">Versión {VERSION}</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge credito-badge px-3 py-2 rounded-pill shadow-sm fs-7 border border-secondary">
+                        <i class="bi bi-code-slash me-2 text-info"></i>Desarrollado por Angelo Vera - 5to A
+                    </span>
+                    <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold shadow-sm">v{VERSION}</span>
                 </div>
             </div>
         </div>
@@ -94,47 +150,58 @@ def inicio():
         <div class="container">
             <div class="row g-4">
                 
-                <div class="col-12 col-md-6 col-lg-5">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body p-4 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-primary-subtle text-primary rounded-3 p-2 me-3">
-                                        <i class="bi bi-clock-history fs-3"></i>
-                                    </div>
-                                    <h5 class="card-title mb-0 fw-bold text-secondary">Tiempo del Servidor</h5>
+                <div class="col-12 col-lg-5">
+                    <div class="card shadow-sm h-100 p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-indigo-subtle text-indigo rounded-3 p-2 me-3" style="background-color: #e0e7ff; color: #4f46e5;">
+                                    <i class="bi bi-clock-history fs-3"></i>
                                 </div>
-                                <hr class="text-muted opacity-25">
-                                <p class="text-muted small mb-1 text-uppercase fw-bold tracking-wider">Fecha Actual</p>
-                                <h4 class="fw-semibold text-dark mb-4">{fecha_texto}</h4>
+                                <h5 class="card-title mb-0 fw-bold text-secondary">Tiempo del Servidor</h5>
                             </div>
-                            
-                            <div class="bg-light rounded-3 p-3 text-center my-3 border border-light-subtle">
-                                <p class="text-muted small mb-1 text-uppercase fw-bold">Hora Local</p>
-                                <h1 class="display-4 fw-bold text-primary mb-0" style="letter-spacing: -1px;">{hora_texto}</h1>
-                            </div>
-                            
-                            <div class="text-muted small d-flex align-items-center mt-2">
-                                <i class="bi bi-info-circle me-2"></i> Refresca la página para actualizar la hora.
-                            </div>
+                            <hr class="opacity-25">
+                            <p class="text-muted small mb-1 text-uppercase fw-bold">Fecha de Hoy</p>
+                            <h4 class="fw-semibold text-dark mb-4">{fecha_hoy_texto}</h4>
+                        </div>
+                        
+                        <div class="rounded-3 p-4 text-center my-3" style="background-color: #f8fafc; border: 1px solid #f1f5f9;">
+                            <p class="text-muted small mb-1 text-uppercase fw-bold">Hora Local</p>
+                            <h1 class="display-3 fw-bold mb-0" style="color: #4f46e5; letter-spacing: -2px;">{hora_texto}</h1>
+                        </div>
+                        
+                        <div class="text-muted small d-flex align-items-center mt-2">
+                            <i class="bi bi-arrow-clockwise me-2 text-primary"></i> Refresca el navegador para actualizar los segundos.
                         </div>
                     </div>
                 </div>
 
-                <div class="col-12 col-md-6 col-lg-7">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bg-success-subtle text-success rounded-3 p-2 me-3">
-                                    <i class="bi bi-calendar3 fs-3"></i>
-                                </div>
-                                <h5 class="card-title mb-0 fw-bold text-secondary">Calendario Mensual</h5>
+                <div class="col-12 col-lg-7">
+                    <div class="card shadow-sm h-100 p-4" 
+                         id="calendar-card"
+                         data-today-day="{hoy.day}"
+                         data-today-month="{hoy.month}"
+                         data-today-year="{hoy.year}"
+                         data-view-month="{mes_vista}"
+                         data-view-year="{ano_vista}">
+                        
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                            <div class="d-flex gap-1">
+                                <a href="/?year={prev_ano_solo}&month={mes_vista}" class="btn btn-nav btn-sm shadow-sm" title="Año Anterior"><i class="bi bi-chevron-double-left"></i> Año</a>
+                                <a href="/?year={prev_ano}&month={prev_mes}" class="btn btn-nav btn-sm shadow-sm" title="Mes Anterior"><i class="bi bi-chevron-left"></i> Mes</a>
                             </div>
-                            <hr class="text-muted opacity-25">
                             
-                            <div class="table-responsive">
-                                {calendario_html}
+                            <a href="/" class="btn btn-hoy btn-sm fw-bold px-3 shadow-sm"><i class="bi bi-calendar2-check me-1"></i> Ir a Hoy</a>
+                            
+                            <div class="d-flex gap-1">
+                                <a href="/?year={next_ano}&month={next_mes}" class="btn btn-nav btn-sm shadow-sm" title="Mes Siguiente">Mes <i class="bi bi-chevron-right"></i></a>
+                                <a href="/?year={next_ano_solo}&month={mes_vista}" class="btn btn-nav btn-sm shadow-sm" title="Año Siguiente">Año <i class="bi bi-chevron-double-right"></i></a>
                             </div>
+                        </div>
+
+                        <hr class="opacity-10 m-0 mb-3">
+                        
+                        <div class="table-responsive">
+                            {calendario_html}
                         </div>
                     </div>
                 </div>
@@ -143,21 +210,26 @@ def inicio():
         </div>
 
         <footer class="container text-center text-muted small my-5 py-3 border-top opacity-50">
-            Desarrollado en Flask & Docker &bull; 2026
+            Infraestructura DevOps de Prácticas &bull; Angelo Vera &bull; 2026
         </footer>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        
         <script>
             document.addEventListener("DOMContentLoaded", function() {{
-                const diaHoy = "{ahora.day}";
-                const celdas = document.querySelectorAll(".table td:not(.noday)");
+                const card = document.getElementById("calendar-card");
+                const tDay = card.getAttribute("data-today-day");
+                const tMonth = card.getAttribute("data-today-month");
+                const tYear = card.getAttribute("data-today-year");
+                const vMonth = card.getAttribute("data-view-month");
+                const vYear = card.getAttribute("data-view-year");
                 
-                celdas.forEach(celda => {{
-                    if (celda.innerText.trim() === diaHoy) {{
-                        celda.innerHTML = '<span class="bg-primary text-white d-flex align-items-center justify-content-center mx-auto rounded-circle fw-bold shadow-sm" style="width: 38px; height: 38px;">' + diaHoy + '</span>';
-                    }}
-                }});
+                if (tMonth === vMonth && tYear === vYear) {{
+                    const celdas = document.querySelectorAll(".table td:not(.noday)");
+                    celdas.forEach(celda => {{
+                        if (celda.innerText.trim() === tDay) {{
+                            celda.innerHTML = '<span class="text-white d-flex align-items-center justify-content-center mx-auto rounded-circle fw-bold shadow-sm" style="width: 38px; height: 38px; background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);">' + tDay + '</span>';
+                        }}
+                    }});
+                }}
             }});
         </script>
     </body>
