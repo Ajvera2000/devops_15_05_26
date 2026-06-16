@@ -6,7 +6,7 @@ import re
 
 app = Flask(__name__)
 
-VERSION = "2.1.0"
+VERSION = "2.3.0"
 
 MESES_ES = {
     1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
@@ -16,7 +16,7 @@ MESES_ES = {
 
 TAREAS_DEVOPS = {
     5: ["Mantenimiento programado de Base de Datos", "Backup semanal"],
-    12: ["Despliegue a Producción v2.1.0"],
+    12: ["Despliegue a Producción v2.3.0"],
     18: ["Auditoría de Seguridad - Parche de contenedores Docker"],
     25: ["Revisión de logs y optimización de índices en AWS"]
 }
@@ -273,19 +273,22 @@ PLANTILLA_HTML = """
                         <div class="rounded-3 p-2 me-3" style="background-color: #ffe4e6; color: #f43f5e;"><i class="bi bi-youtube fs-4"></i></div>
                         <div>
                             <h5 class="mb-0 fw-bold text-secondary">Centro de Capacitación & Cultura</h5>
-                            <small class="text-muted">Recursos multimedia y muestras de producción nacional ecuatoriana</small>
+                            <small class="text-muted">Muestra de música y arte nacional e internacional</small>
                         </div>
                     </div>
                     
-                    <div class="d-flex flex-wrap gap-2 mb-3">
-                        <button class="btn btn-outline-danger btn-sm active fw-semibold" id="btn-vid1" onclick="cambiarVideo('Aztra - El Mañana', 'Muestra artística del emblemático tema musical \\'El Mañana\\' interpretado por la icónica banda de rock/metal nacional Aztra.', '🎸 Rock/Metal EC', 'https://www.youtube.com/embed/PhkfHrljRiQ', 'btn-vid1')">
+                    <div class="d-flex flex-wrap gap-2 mb-3" id="video-button-group">
+                        <button class="btn btn-outline-danger btn-sm active fw-semibold" id="btn-vid1" onclick="cambiarVideo('Aztra - El Mañana', 'Muestra artística del emblemático tema musical \\'El Mañana\\' interpretado por la icónica banda de rock/metal nacional ecuatoriana Aztra.', '🎸 Rock/Metal EC', 'https://www.youtube.com/embed/PhkfHrljRiQ', 'btn-vid1')">
                             <i class="bi bi-music-note-beamed me-1"></i> Aztra - El Mañana
                         </button>
-                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid2" onclick="cambiarVideo('🐳 Tecnologías de Contenedores', '📦 Explicación práctica de Docker y arquitectura aislada.', '🐳 ¿Qué es Docker?', 'https://www.youtube.com/embed/4Dko5W96tRE', 'btn-vid2')">
-                            <i class="bi bi-box-seam me-1"></i> Módulo 2: Docker
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid2" onclick="cambiarVideo('Aztra - Eres', 'Potente balada rock e himno de la agrupación ecuatoriana Aztra, destacando la riqueza instrumental de la música de nuestra tierra.', '🎸 Rock/Metal EC', 'https://www.youtube.com/embed/NhdxusBZlZA', 'btn-vid2')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Aztra - Eres
                         </button>
-                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid3" onclick="cambiarVideo('♾️ Cultura & Flujo DevOps', '🔄 Comprendiendo la integración continua y despliegue automatizado.', '♾️ Introducción DevOps', 'https://www.youtube.com/embed/V6HwYv736as', 'btn-vid3')">
-                            <i class="bi bi-infinity me-1"></i> Módulo 3: DevOps
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid3" onclick="cambiarVideo('WarCry - La vida en un beso', 'Espectacular pieza musical de Power Metal interpretada por la legendaria banda española WarCry.', '⚔️ Power Metal ES', 'https://www.youtube.com/embed/GEFjJr1lK6c', 'btn-vid3')">
+                            <i class="bi bi-music-note-beamed me-1"></i> WarCry - La vida en un beso
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid4" onclick="cambiarVideo('Boddega - Mi recuerdo, un cigarrillo', 'Clásica y nostálgica balada de rock nacional ecuatoriano interpretada por el legendario grupo Boddega.', '🎙️ Rock Clásico EC', 'https://www.youtube.com/embed/gXZ3J5XeOXw', 'btn-vid4')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Boddega - Mi recuerdo, un cigarrillo
                         </button>
                     </div>
 
@@ -298,7 +301,7 @@ PLANTILLA_HTML = """
                         <div class="col-12 col-md-5 d-flex flex-column justify-content-center p-3 bg-body-tertiary rounded-3 border">
                             <span class="badge bg-danger-subtle text-danger align-self-start mb-2" id="vid-tag">🎸 Rock/Metal EC</span>
                             <h6 class="fw-bold mb-1 text-body" id="vid-title">Aztra - El Mañana</h6>
-                            <p class="text-muted small mb-0" id="vid-desc">Muestra artística del emblemático tema musical 'El Mañana' interpretado por la icónica banda de rock/metal nacional Aztra.</p>
+                            <p class="text-muted small mb-0" id="vid-desc">Muestra artística del emblemático tema musical 'El Mañana' interpretado por la icónica banda de rock/metal nacional ecuatoriana Aztra.</p>
                         </div>
                     </div>
                 </div>
@@ -410,9 +413,9 @@ PLANTILLA_HTML = """
             document.getElementById('vid-desc').innerText = descripcion;
             document.getElementById('vid-tag').innerText = tag;
             
-            document.getElementById('btn-vid1').classList.remove('active');
-            document.getElementById('btn-vid2').classList.remove('active');
-            document.getElementById('btn-vid3').classList.remove('active');
+            document.querySelectorAll('#video-button-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
             document.getElementById(btnId).classList.add('active');
 
             const term = document.getElementById('terminal');
@@ -521,7 +524,7 @@ PLANTILLA_HTML = """
                     clearInterval(intervalo);
                     stepTxt.className = "text-success";
                     bar.className = "progress-bar bg-success";
-                    stepTxt.innerHTML = "✅ ¡Despliegue Exitoso! Producción v2.1.0 online.";
+                    stepTxt.innerHTML = "✅ ¡Despliegue Exitoso! Producción v2.3.0 online.";
                     term.innerHTML += `<span class="log-success">[${new Date().toLocaleTimeString()}] [SUCCESS] Deployment finished successfully! All checks passed.</span><br>`;
                     
                     setTimeout(() => {
@@ -597,8 +600,7 @@ def index():
     prev_ano_solo = ano_vista - 1
     next_ano_solo = ano_vista + 1
 
-    # Generación estructurada del Calendario HTML nativo compatible con Bootstrap
-    cal = calendar.Calendar(firstweekday=0) # Lunes primer día
+    cal = calendar.Calendar(firstweekday=0)
     semanas = cal.monthdayscalendar(ano_vista, mes_vista)
     
     tabla_html = '<table class="table table-bordered text-center align-middle mb-0">'
@@ -612,11 +614,9 @@ def index():
                 tabla_html += '<td class="noday text-muted opacity-25">-</td>'
             else:
                 clases = []
-                # Validar si el día coincide exactamente con "hoy"
                 if dia == hoy.day and mes_vista == hoy.month and ano_vista == hoy.year:
                     clases.append("bg-info-subtle border border-info border-2 text-info-emphasis rounded-3")
                 
-                # Validar si tiene tareas asignadas
                 if dia in TAREAS_DEVOPS:
                     clases.append("tiene-tarea fw-bold")
                 
@@ -625,8 +625,6 @@ def index():
         tabla_html += '</tr>'
     tabla_html += '</tbody></table>'
 
-    # Se usa el prefijo 'r' para indicarle a Python que es un string crudo (Raw String)
-    # Evitando así el SyntaxWarning causado por '\${dia}' y '\${t}' de JavaScript.
     script_calendario = r"""
     <script>
     const tareasLocales = %s;
@@ -677,5 +675,4 @@ def index():
     )
 
 if __name__ == '__main__':
-    # host='0.0.0.0' expone la aplicación hacia la red del contenedor Docker de forma correcta
     app.run(host='0.0.0.0', port=5000, debug=True)
