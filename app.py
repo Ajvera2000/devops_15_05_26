@@ -6,7 +6,7 @@ import re
 
 app = Flask(__name__)
 
-VERSION = "2.3.0"
+VERSION = "2.3.2"  # Incrementamos parche por corrección de metadatos de video
 
 MESES_ES = {
     1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
@@ -278,6 +278,7 @@ PLANTILLA_HTML = """
                     </div>
                     
                     <div class="d-flex flex-wrap gap-2 mb-3" id="video-button-group">
+                        <!-- Videos Base -->
                         <button class="btn btn-outline-danger btn-sm active fw-semibold" id="btn-vid1" onclick="cambiarVideo('Aztra - El Mañana', 'Muestra artística del emblemático tema musical \\'El Mañana\\' interpretado por la icónica banda de rock/metal nacional ecuatoriana Aztra.', '🎸 Rock/Metal EC', 'https://www.youtube.com/embed/PhkfHrljRiQ', 'btn-vid1')">
                             <i class="bi bi-music-note-beamed me-1"></i> Aztra - El Mañana
                         </button>
@@ -289,6 +290,26 @@ PLANTILLA_HTML = """
                         </button>
                         <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid4" onclick="cambiarVideo('Boddega - Mi recuerdo, un cigarrillo', 'Clásica y nostálgica balada de rock nacional ecuatoriano interpretada por el legendario grupo Boddega.', '🎙️ Rock Clásico EC', 'https://www.youtube.com/embed/gXZ3J5XeOXw', 'btn-vid4')">
                             <i class="bi bi-music-note-beamed me-1"></i> Boddega - Mi recuerdo, un cigarrillo
+                        </button>
+                        
+                        <!-- Bloque de videos adicionales -->
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid5" onclick="cambiarVideo('Mago de Oz - Fiesta Pagana', 'Icónico tema musical que combina Folk y Heavy Metal de la destacada banda de rock en español Mago de Oz.', '🎻 Folk Metal ES', 'https://www.youtube.com/embed/jdeq6lJXpj0', 'btn-vid5')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Mago de Oz - Fiesta Pagana
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid6" onclick="cambiarVideo('Saratoga - Si Amaneciera', 'Una de las baladas de Heavy Metal más profundas y aclamadas de la escena española interpretada por Saratoga.', '⚡ Heavy Metal ES', 'https://www.youtube.com/embed/cspyJunYonI', 'btn-vid6')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Saratoga - Si Amaneciera
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid7" onclick="cambiarVideo('Kraken - Vestido de Cristal', 'Clásico fundamental del rock progresivo y el hard rock hispanoamericano a cargo de la legendaria banda colombiana Kraken.', '🛡️ Rock Progresivo CO', 'https://www.youtube.com/embed/VRxF8H-x_J0', 'btn-vid7')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Kraken - Vestido de Cristal
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid8" onclick="cambiarVideo('Rata Blanca - Mujer Amante', 'Gran himno del Rock clásico y Power Metal latinoamericano, una obra maestra de los argentinos Rata Blanca.', '🦅 Hard Rock AR', 'https://www.youtube.com/embed/IGEskjk2hCo', 'btn-vid8')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Rata Blanca - Mujer Amante
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid9" onclick="cambiarVideo('Rata Blanca - Maldita Bruja', 'Gran éxito rítmico extraído del disco El camino del fuego de los argentinos Rata Blanca, con potentes riffs de guitarra.', '⚡ Hard Rock AR', 'https://www.youtube.com/embed/1-iE6tpgYmo', 'btn-vid9')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Rata Blanca - Maldita Bruja
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid10" onclick="cambiarVideo('Ángeles del Infierno - Al Otro Lado del Silencio', 'Emotiva y legendaria balada de Heavy Metal clásico directo desde España por Ángeles del Infierno.', '🔥 Heavy Metal ES', 'https://www.youtube.com/embed/51cZsDsVOqc', 'btn-vid10')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Ángeles del Infierno - Al Otro Lado
                         </button>
                     </div>
 
@@ -308,7 +329,7 @@ PLANTILLA_HTML = """
 
                 <div class="card p-4 shadow-sm">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="rounded-3 p-2 me-3" style="background-color: #fef3c7; color: #d97706;"><i class="bi bi-hdd-network fs-4"></i></div>
+                        <div class="rounded-3 p-2 me-3" style="background-color: #f3e8ff; color: #a855f7;"><i class="bi bi-hdd-network fs-4"></i></div>
                         <h5 class="mb-0 fw-bold text-secondary">Herramientas de Red</h5>
                     </div>
                     <div class="row g-2 align-items-center">
@@ -524,7 +545,7 @@ PLANTILLA_HTML = """
                     clearInterval(intervalo);
                     stepTxt.className = "text-success";
                     bar.className = "progress-bar bg-success";
-                    stepTxt.innerHTML = "✅ ¡Despliegue Exitoso! Producción v2.3.0 online.";
+                    stepTxt.innerHTML = "✅ ¡Despliegue Exitoso! Producción v2.3.2 online.";
                     term.innerHTML += `<span class="log-success">[${new Date().toLocaleTimeString()}] [SUCCESS] Deployment finished successfully! All checks passed.</span><br>`;
                     
                     setTimeout(() => {
