@@ -6,7 +6,7 @@ import re
 
 app = Flask(__name__)
 
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 
 MESES_ES = {
     1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
@@ -74,6 +74,7 @@ body {
 .log-info { color: #38bdf8; }
 .log-success { color: #34d399; }
 .log-error { color: #f87171; animation: blinker 1.5s linear infinite; }
+.log-alert { color: #fbbf24; font-weight: bold; }
 
 @keyframes blinker { 50% { opacity: 0.5; } }
 
@@ -84,6 +85,15 @@ body {
 .btn-theme-toggle:hover { background: rgba(255, 255, 255, 0.3); }
 
 .reloj-contenedor { background-color: var(--bs-light-bg-subtle); border: 1px solid var(--bs-border-color-translucent); }
+
+/* Animación de pulso para la alarma activa */
+.pulse-danger {
+    animation: pulse-bg 1s infinite alternate;
+}
+@keyframes pulse-bg {
+    0% { background-color: rgba(239, 68, 68, 0.1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    100% { background-color: rgba(239, 68, 68, 0.25); box-shadow: 0 0 10px 4px rgba(239, 68, 68, 0.2); }
+}
 """
 
 PLANTILLA_HTML = """
@@ -137,13 +147,12 @@ PLANTILLA_HTML = """
                 </div>
 
                 <!-- Tarjeta de Recursos + Switch de Pánico -->
-                <div class="card p-4 shadow-sm">
+                <div class="card p-4 shadow-sm" id="recursos-card">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="d-flex align-items-center">
                             <div id="recursos-icon-bg" class="rounded-3 p-2 me-3" style="background-color: #e0f2fe; color: #0284c7;"><i class="bi bi-cpu fs-4"></i></div>
                             <h5 class="mb-0 fw-bold text-secondary">Telemetría</h5>
                         </div>
-                        <!-- NUEVO: Switch de simulación de incidentes -->
                         <div class="form-check form-switch" title="Simular colapso del sistema">
                             <input class="form-check-input" type="checkbox" id="panicSwitch" onchange="alternarPanico()">
                             <label class="form-check-label text-danger small fw-bold" for="panicSwitch"><i class="bi bi-exclamation-triangle"></i></label>
@@ -157,7 +166,6 @@ PLANTILLA_HTML = """
                         <div class="d-flex justify-content-between small fw-bold mb-1"><span>Uso Memoria RAM</span><span id="ram-txt">42%</span></div>
                         <div class="progress" style="height: 8px;"><div id="ram-bar" class="progress-bar bg-primary" style="width: 42%"></div></div>
                     </div>
-                    <!-- NUEVO: Contador de Uptime -->
                     <hr class="opacity-25">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="small text-muted fw-semibold">Tiempo Continuo sin Fallos:</span>
@@ -165,7 +173,29 @@ PLANTILLA_HTML = """
                     </div>
                 </div>
 
-                <!-- NUEVO: Herramienta de Diagnóstico de Red (Ping) -->
+                <!-- NUEVA TARJETA: Sistema de Alarma Inteligente -->
+                <div class="card p-4 shadow-sm" id="alarm-card">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center">
+                            <div id="alarm-icon-bg" class="rounded-3 p-2 me-3" style="background-color: #fee2e2; color: #dc2626;"><i class="bi bi-bell fs-4"></i></div>
+                            <h5 class="mb-0 fw-bold text-secondary">Umbral de Alarma</h5>
+                        </div>
+                        <span id="alarm-status-badge" class="badge bg-secondary">Inactiva</span>
+                    </div>
+                    
+                    <label for="cpuThreshold" class="form-label small fw-bold text-muted">Disparar alarma si la CPU supera el:</label>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <input type="range" class="form-range" id="cpuThreshold" min="50" max="95" value="80" oninput="actualizarThresholdTexto(this.value)">
+                        <span id="threshold-val" class="fw-bold text-primary fs-5" style="min-width: 45px;">80%</span>
+                    </div>
+
+                    <div class="form-check form-check-inline small">
+                        <input class="form-check-input" type="checkbox" id="muteSound" checked>
+                        <label class="form-check-label text-muted" for="muteSound"><i class="bi bi-volume-mute"></i> Silenciar pitido sonoro</label>
+                    </div>
+                </div>
+
+                <!-- Herramienta de Diagnóstico de Red (Ping) -->
                 <div class="card p-4 shadow-sm">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-3 p-2 me-3" style="background-color: #fef3c7; color: #d97706;"><i class="bi bi-hdd-network fs-4"></i></div>
@@ -244,6 +274,8 @@ PLANTILLA_HTML = """
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let modoPanico = false;
+        let alarmThreshold = 80;
+        let audioCtx = null; // Para generar el sonido de la alarma
 
         // 1. CONTROL DE TEMA
         const htmlElement = document.documentElement;
@@ -276,7 +308,29 @@ PLANTILLA_HTML = """
         }
         setInterval(actualizarReloj, 1000); actualizarReloj();
 
-        // 3. SIMULACIÓN DE MÉTRICAS & MODO PÁNICO
+        // 3. AUXILIAR DE AUDIO (PITIDO SINTETIZADO DE ALARMA)
+        function playBeep() {
+            if (document.getElementById('muteSound').checked) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Tono agudo
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15); // Duración corta
+            } catch(e) { console.log("Audio no iniciado por políticas del navegador"); }
+        }
+
+        function actualizarThresholdTexto(valor) {
+            alarmThreshold = parseInt(valor);
+            document.getElementById('threshold-val').innerText = valor + '%';
+        }
+
+        // 4. SIMULACIÓN DE MÉTRICAS & MODO PÁNICO + CONTROL DE ALARMA
         setInterval(() => {
             let cpu, ram;
             const term = document.getElementById('terminal');
@@ -290,11 +344,10 @@ PLANTILLA_HTML = """
                     term.innerHTML += `<span class="log-info">[${new Date().toLocaleTimeString()}] [INFO] ${mensajes[Math.floor(Math.random()*mensajes.length)]}.</span><br>`;
                 }
             } else {
-                // Si el switch está activo, las métricas revientan
                 cpu = Math.floor(Math.random() * (100 - 94) + 94);
                 ram = Math.floor(Math.random() * (99 - 91) + 91);
                 
-                const errores = ["CRITICAL: DB Connection Timeout!", "WARNING: Memoria swap superando el 90%", "ERROR: Puerto 443 saturado - Posible ataque de denegación DDOS", "ALERT: Pérdida de paquetes en la interfaz eth0"];
+                const errores = ["CRITICAL: DB Connection Timeout!", "WARNING: Memoria swap superando el 90%", "ERROR: Puerto 443 saturado - Posible ataque DDOS", "ALERT: Pérdida de paquetes en la interfaz eth0"];
                 term.innerHTML += `<span class="log-error">[${new Date().toLocaleTimeString()}] [CRITICAL] ${errores[Math.floor(Math.random()*errores.length)]}.</span><br>`;
             }
 
@@ -303,12 +356,31 @@ PLANTILLA_HTML = """
             document.getElementById('ram-txt').innerText = ram + '%';
             document.getElementById('ram-bar').style.width = ram + '%';
             
-            // Cambiar colores de barras si pasa umbrales críticos
+            // Colores de barras según criticidad
             if(cpu > 85) { document.getElementById('cpu-bar').className = "progress-bar bg-danger"; }
             else { document.getElementById('cpu-bar').className = "progress-bar bg-info"; }
             
             if(ram > 85) { document.getElementById('ram-bar').className = "progress-bar bg-danger"; }
             else { document.getElementById('ram-bar').className = "progress-bar bg-primary"; }
+
+            // LOGICA DE REVISIÓN DE ALARMA (CPU vs Umbral Seleccionado)
+            const alarmCard = document.getElementById('alarm-card');
+            const alarmBadge = document.getElementById('alarm-status-badge');
+            
+            if (cpu >= alarmThreshold) {
+                alarmCard.classList.add('pulse-danger');
+                alarmBadge.className = "badge bg-danger animate-pulse";
+                alarmBadge.innerText = "¡DISPARADA!";
+                playBeep(); // Intenta hacer sonar el pitido
+                
+                if (Math.random() > 0.6) {
+                    term.innerHTML += `<span class="log-alert">[${new Date().toLocaleTimeString()}] [ALERTA] CPU superó el umbral límite configurado (${alarmThreshold}%).</span><br>`;
+                }
+            } else {
+                alarmCard.classList.remove('pulse-danger');
+                alarmBadge.className = "badge bg-secondary";
+                alarmBadge.innerText = "Inactiva";
+            }
 
             term.scrollTop = term.scrollHeight;
         }, 2500);
@@ -338,7 +410,7 @@ PLANTILLA_HTML = """
             term.scrollTop = term.scrollHeight;
         }
 
-        // 4. SIMULACIÓN DE PING EN RED
+        // 5. SIMULACIÓN DE PING EN RED
         function ejecutarPing() {
             const host = document.getElementById('pingHost').value.trim();
             const btn = document.getElementById('btnPing');
@@ -354,13 +426,11 @@ PLANTILLA_HTML = """
             resVal.className = "text-warning";
             resVal.innerText = "Haciendo traza...";
 
-            // Simular petición asíncrona de red
             setTimeout(() => {
                 btn.disabled = false;
                 btn.innerText = "Ping";
                 
                 if (modoPanico && Math.random() > 0.3) {
-                    // Si el sistema está caído, el ping suele fallar
                     resVal.className = "text-danger";
                     resVal.innerText = "Tiempo de espera agotado (Request Timeout)";
                     term.innerHTML += `<span class="log-error">[${new Date().toLocaleTimeString()}] [NET] Ping fallido hacia ${host}.</span><br>`;
@@ -374,7 +444,7 @@ PLANTILLA_HTML = """
             }, 1200);
         }
 
-        // 5. INTERACCIÓN CALENDARIO
+        // 6. INTERACCIÓN CALENDARIO
         document.addEventListener("DOMContentLoaded", function() {
             const card = document.getElementById("calendar-card");
             const tDay = card.getAttribute("data-today-day");
