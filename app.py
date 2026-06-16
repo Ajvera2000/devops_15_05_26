@@ -6,7 +6,7 @@ import re
 
 app = Flask(__name__)
 
-VERSION = "2.3.2"  # Incrementamos parche por corrección de metadatos de video
+VERSION = "2.4.0"  # Incrementamos versión menor por añadir nueva característica/video
 
 MESES_ES = {
     1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
@@ -16,7 +16,7 @@ MESES_ES = {
 
 TAREAS_DEVOPS = {
     5: ["Mantenimiento programado de Base de Datos", "Backup semanal"],
-    12: ["Despliegue a Producción v2.3.0"],
+    12: ["Despliegue a Producción v2.4.0"],
     18: ["Auditoría de Seguridad - Parche de contenedores Docker"],
     25: ["Revisión de logs y optimización de índices en AWS"]
 }
@@ -57,10 +57,10 @@ body {
 [data-bs-theme="dark"] .titulo-mes { color: #818cf8; }
 
 .table th { color: #94a3b8; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
-.table td { font-weight: 600; color: var(--bs-body-color); width: 45px; height: 50px; cursor: pointer; border-radius: 8px; position: relative; }
+.table td { font-weight: 600; color: var(--bs-body-color); width: 45px; height: 50px; cursor: pointer; border-radius: 8px; position: relative; text-align: center; vertical-align: middle; }
 .table td:not(.nonday):hover { background-color: var(--bs-secondary-bg-subtle); }
-.noday { color: #cbd5e1 !important; cursor: default !important; }
-[data-bs-theme="dark"] .noday { color: #475569 !important; }
+.nonday { color: #cbd5e1 !important; cursor: default !important; }
+[data-bs-theme="dark"] .nonday { color: #475569 !important; }
 
 .tiene-tarea::after {
     content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
@@ -248,7 +248,7 @@ PLANTILLA_HTML = """
                         <div class="d-flex align-items-center">
                             <div class="rounded-3 p-2 me-3" style="background-color: #f3e8ff; color: #a855f7;"><i class="bi bi-rocket-takeoff fs-4"></i></div>
                             <div>
-                                <h5 class="mb-0 fw-bold text-secondary">Pipeline de Integración Continua (CI/CD)</h5>
+                                <h5 class="mb-0 fw-bold text-secondary">Pipeline de Integración Continuo (CI/CD)</h5>
                                 <small class="text-muted">Rama activa: <code class="text-purple">main</code></small>
                             </div>
                         </div>
@@ -278,7 +278,6 @@ PLANTILLA_HTML = """
                     </div>
                     
                     <div class="d-flex flex-wrap gap-2 mb-3" id="video-button-group">
-                        <!-- Videos Base -->
                         <button class="btn btn-outline-danger btn-sm active fw-semibold" id="btn-vid1" onclick="cambiarVideo('Aztra - El Mañana', 'Muestra artística del emblemático tema musical \\'El Mañana\\' interpretado por la icónica banda de rock/metal nacional ecuatoriana Aztra.', '🎸 Rock/Metal EC', 'https://www.youtube.com/embed/PhkfHrljRiQ', 'btn-vid1')">
                             <i class="bi bi-music-note-beamed me-1"></i> Aztra - El Mañana
                         </button>
@@ -291,8 +290,6 @@ PLANTILLA_HTML = """
                         <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid4" onclick="cambiarVideo('Boddega - Mi recuerdo, un cigarrillo', 'Clásica y nostálgica balada de rock nacional ecuatoriano interpretada por el legendario grupo Boddega.', '🎙️ Rock Clásico EC', 'https://www.youtube.com/embed/gXZ3J5XeOXw', 'btn-vid4')">
                             <i class="bi bi-music-note-beamed me-1"></i> Boddega - Mi recuerdo, un cigarrillo
                         </button>
-                        
-                        <!-- Bloque de videos adicionales -->
                         <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid5" onclick="cambiarVideo('Mago de Oz - Fiesta Pagana', 'Icónico tema musical que combina Folk y Heavy Metal de la destacada banda de rock en español Mago de Oz.', '🎻 Folk Metal ES', 'https://www.youtube.com/embed/jdeq6lJXpj0', 'btn-vid5')">
                             <i class="bi bi-music-note-beamed me-1"></i> Mago de Oz - Fiesta Pagana
                         </button>
@@ -310,6 +307,9 @@ PLANTILLA_HTML = """
                         </button>
                         <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid10" onclick="cambiarVideo('Ángeles del Infierno - Al Otro Lado del Silencio', 'Emotiva y legendaria balada de Heavy Metal clásico directo desde España por Ángeles del Infierno.', '🔥 Heavy Metal ES', 'https://www.youtube.com/embed/51cZsDsVOqc', 'btn-vid10')">
                             <i class="bi bi-music-note-beamed me-1"></i> Ángeles del Infierno - Al Otro Lado
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm fw-semibold" id="btn-vid11" onclick="cambiarVideo('Moderatto - Mil Demonios', 'Potente y melódica canción de la banda mexicana Moderatto, destacando su enérgico estilo Glam Rock.', '🤘 Glam Rock MX', 'https://www.youtube.com/embed/U1IilAPFpAQ', 'btn-vid11')">
+                            <i class="bi bi-music-note-beamed me-1"></i> Moderatto - Mil Demonios
                         </button>
                     </div>
 
@@ -329,7 +329,7 @@ PLANTILLA_HTML = """
 
                 <div class="card p-4 shadow-sm">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="rounded-3 p-2 me-3" style="background-color: #f3e8ff; color: #a855f7;"><i class="bi bi-hdd-network fs-4"></i></div>
+                        <div class="rounded-3 p-2 me-3" style="background-color: #fef3c7; color: #d97706;"><i class="bi bi-hdd-network fs-4"></i></div>
                         <h5 class="mb-0 fw-bold text-secondary">Herramientas de Red</h5>
                     </div>
                     <div class="row g-2 align-items-center">
@@ -502,6 +502,7 @@ PLANTILLA_HTML = """
             }
         }
 
+        // CONTINUACIÓN DE LA FUNCIÓN PIPELINE CI/CD COMPLETADA
         function iniciarDespliegue() {
             const btn = document.getElementById('btnDeploy');
             const box = document.getElementById('deploy-process-box');
@@ -530,72 +531,139 @@ PLANTILLA_HTML = """
 
                 if (progreso < 35) {
                     stepTxt.innerText = "🔨 Stage 1: Compilando paquetes de código...";
-                    if(progreso === 5) term.innerHTML += `<span class="log-info">[${new Date().toLocaleTimeString()}] [CI/CD] Building project dependencies via Webpack...</span><br>`;
-                } else if (progreso < 75) {
-                    stepTxt.className = "text-warning";
-                    bar.className = "progress-bar progress-bar-striped progress-bar-animated bg-warning";
-                    stepTxt.innerText = "🧪 Stage 2: Ejecutando pruebas unitarias...";
-                    if(progreso === 35) term.innerHTML += `<span class="log-alert">[${new Date().toLocaleTimeString()}] [CI/CD] Launching core unit tests with Jest...</span><br>`;
-                } else if (progreso < 100) {
-                    stepTxt.className = "text-info";
-                    bar.className = "progress-bar progress-bar-striped progress-bar-animated bg-info";
-                    stepTxt.innerText = "📦 Stage 3: Distribuyendo contenedores Docker...";
-                    if(progreso === 75) term.innerHTML += `<span class="log-info">[${new Date().toLocaleTimeString()}] [CI/CD] Pushing new production images to local registry...</span><br>`;
+                } else if (progreso < 70) {
+                    stepTxt.innerText = "🧪 Stage 2: Corriendo Pruebas Unitarias e Integración...";
+                } else if (progreso < 95) {
+                    stepTxt.innerText = "📦 Stage 3: Generando Docker Image & Push a Registry...";
                 } else {
+                    stepTxt.innerText = "🚀 Stage 4: Despliegue Exitoso en Cluster K8s!";
+                }
+
+                if (progreso >= 100) {
                     clearInterval(intervalo);
-                    stepTxt.className = "text-success";
-                    bar.className = "progress-bar bg-success";
-                    stepTxt.innerHTML = "✅ ¡Despliegue Exitoso! Producción v2.3.2 online.";
-                    term.innerHTML += `<span class="log-success">[${new Date().toLocaleTimeString()}] [SUCCESS] Deployment finished successfully! All checks passed.</span><br>`;
-                    
                     setTimeout(() => {
                         btn.disabled = false;
                         box.style.display = "none";
                         bar.style.width = "0%";
-                    }, 4000);
+                        term.innerHTML += `<span class="log-success">[${new Date().toLocaleTimeString()}] [SUCCESS] Deployment Pipeline finalizado con éxito (v${VERSION}).</span><br>`;
+                        term.scrollTop = term.scrollHeight;
+                    }, 1000);
                 }
-                term.scrollTop = term.scrollHeight;
-            }, 250);
+            }, 2500 / 20);
         }
 
+        // FUNCIÓN DINÁMICA DE INTERFAZ PARA EJECUTAR PING
         function ejecutarPing() {
-            const host = document.getElementById('pingHost').value.trim();
-            const btn = document.getElementById('btnPing');
+            const host = document.getElementById('pingHost').value;
             const resBox = document.getElementById('pingResult');
             const resVal = document.getElementById('pingValue');
+            const btn = document.getElementById('btnPing');
             const term = document.getElementById('terminal');
 
-            if(!host) return;
-            btn.disabled = true;
-            resBox.style.display = "block";
-            resVal.className = "text-warning"; resVal.innerText = "Trazando...";
+            if(!host.trim()) return;
 
-            setTimeout(() => {
-                btn.disabled = false;
-                if (modoPanico && Math.random() > 0.3) {
-                    resVal.className = "text-danger"; resVal.innerText = "Timeout";
-                    term.innerHTML += `<span class="log-error">[${new Date().toLocaleTimeString()}] [NET] Ping timeout para ${SecurityEscape(host)}.</span><br>`;
-                } else {
-                    const ms = Math.floor(Math.random() * (45 - 5) + 5);
-                    resVal.className = "text-success"; resVal.innerText = `${ms}ms`;
-                    term.innerHTML += `<span class="log-success">[${new Date().toLocaleTimeString()}] [NET] Respuesta desde ${SecurityEscape(host)}: tiempo=${ms}ms.</span><br>`;
-                }
-                term.scrollTop = term.scrollHeight;
-            }, 1200);
+            btn.disabled = true;
+            resBox.style.display = "inline-block";
+            resVal.className = "text-warning";
+            resVal.innerText = "Procesando...";
+
+            fetch(`/api/ping?host=${encodeURIComponent(host)}`)
+                .then(r => r.json())
+                .then(data => {
+                    btn.disabled = false;
+                    if(data.status === "success") {
+                        resVal.className = "text-success";
+                        resVal.innerText = data.latencia;
+                        term.innerHTML += `<span class="log-success">[${new Date().toLocaleTimeString()}] [NET] PING a ${SecurityEscape(host)} exitoso: ${data.latencia}</span><br>`;
+                    } else {
+                        resVal.className = "text-danger";
+                        resVal.innerText = "Error";
+                        term.innerHTML += `<span class="log-error">[${new Date().toLocaleTimeString()}] [NET] PING a ${SecurityEscape(host)} fallido o inválido.</span><br>`;
+                    }
+                    term.scrollTop = term.scrollHeight;
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    resVal.className = "text-danger";
+                    resVal.innerText = "Timeout";
+                });
         }
+
+        // ESCUCHA DE CLICS EN EL CALENDARIO PARA MOSTRAR TAREAS
+        document.addEventListener('DOMContentLoaded', () => {
+            const cCard = document.getElementById('calendar-card');
+            const viewMonth = cCard.getAttribute('data-view-month');
+            const viewYear = cCard.getAttribute('data-view-year');
+
+            document.querySelectorAll('.table td:not(.nonday)').forEach(td => {
+                td.addEventListener('click', () => {
+                    const dia = td.innerText.trim().split('\\n')[0];
+                    fetch(`/api/tareas?year=${viewYear}&month=${viewMonth}&day=${dia}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            const lista = document.getElementById('lista-tareas');
+                            lista.innerHTML = "";
+                            if(data.tareas && data.tareas.length > 0) {
+                                data.tareas.forEach(t => {
+                                    lista.innerHTML += `<li><strong class="text-warning">[Mantenimiento]</strong> ${SecurityEscape(t)}</li>`;
+                                });
+                            } else {
+                                lista.innerHTML = `<li>No hay tareas críticas programadas para el día ${dia} de ${SecurityEscape(data.nombre_mes)}.</li>`;
+                            }
+                        });
+                });
+            });
+        });
     </script>
 </body>
 </html>
 """
 
+class CustomHTMLCalendar(calendar.HTMLCalendar):
+    def __init__(self, tareas, hoy, mes_v, ano_v):
+        super().__init__(calendar.MONDAY)
+        self.tareas = tareas
+        self.hoy = hoy
+        self.mes_v = mes_v
+        self.ano_v = ano_v
+
+    def formatday(self, day, weekday):
+        if day == 0:
+            return '<td class="nonday">&nbsp;</td>'
+        
+        clases = []
+        # Comprobar si el día de la cuadrícula renderizada coincide con el día de hoy real
+        if day == self.hoy.day and self.mes_v == self.hoy.month and self.ano_v == self.hoy.year:
+            clases.append("bg-success-subtle text-success border border-success-subtle rounded-3")
+        
+        if day in self.tareas:
+            clases.append("tiene-tarea")
+            
+        clase_str = " ".join(clases) if clases else ""
+        return f'<td class="{clase_str}">{day}</td>'
+
+    def formatmonthtable(self, theyear, themonth, withyear=True):
+        v = []
+        a = v.append
+        a('<table class="table table-bordered table-sm align-middle mb-0">')
+        a('\\n')
+        a(self.formatweekheader())
+        a('\\n')
+        for week in self.monthdays2calendar(theyear, themonth):
+            a(self.formatweek(week))
+            a('\\n')
+        a('</table>')
+        a('\\n')
+        return ''.join(v)
+
+
 @app.route('/')
 def index():
     hoy = datetime.now()
-    ano_actual = hoy.year
-    mes_actual = hoy.month
     
-    ano_vista = request.args.get('year', default=ano_actual, type=int)
-    mes_vista = request.args.get('month', default=mes_actual, type=int)
+    # Manejo dinámico de navegación de fechas mediante query strings
+    ano_vista = request.args.get('year', default=hoy.year, type=int)
+    mes_vista = request.args.get('month', default=hoy.month, type=int)
     
     if mes_vista < 1:
         mes_vista = 12
@@ -603,9 +671,8 @@ def index():
     elif mes_vista > 12:
         mes_vista = 1
         ano_vista += 1
-        
-    nombre_mes_vista = MESES_ES.get(mes_vista, "Mes")
-    
+
+    # Parámetros para los botones de navegación
     prev_mes = mes_vista - 1
     prev_ano = ano_vista
     if prev_mes < 1:
@@ -618,82 +685,65 @@ def index():
         next_mes = 1
         next_ano += 1
 
-    prev_ano_solo = ano_vista - 1
-    next_ano_solo = ano_vista + 1
-
-    cal = calendar.Calendar(firstweekday=0)
-    semanas = cal.monthdayscalendar(ano_vista, mes_vista)
+    nombre_mes_vista = MESES_ES.get(mes_vista, "Desconocido")
     
-    tabla_html = '<table class="table table-bordered text-center align-middle mb-0">'
-    tabla_html += '<thead><tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr></thead>'
-    tabla_html += '<tbody>'
-    
-    for semana in semanas:
-        tabla_html += '<tr>'
-        for dia in semana:
-            if dia == 0:
-                tabla_html += '<td class="noday text-muted opacity-25">-</td>'
-            else:
-                clases = []
-                if dia == hoy.day and mes_vista == hoy.month and ano_vista == hoy.year:
-                    clases.append("bg-info-subtle border border-info border-2 text-info-emphasis rounded-3")
-                
-                if dia in TAREAS_DEVOPS:
-                    clases.append("tiene-tarea fw-bold")
-                
-                clase_str = " ".join(clases) if clases else ""
-                tabla_html += f'<td class="{clase_str}" onclick="verTareas({dia})">{dia}</td>'
-        tabla_html += '</tr>'
-    tabla_html += '</tbody></table>'
-
-    script_calendario = r"""
-    <script>
-    const tareasLocales = %s;
-    function verTareas(dia) {
-        const lista = document.getElementById('lista-tareas');
-        lista.innerHTML = "";
-        
-        document.querySelectorAll('.table td.bg-primary-subtle').forEach(el => el.classList.remove('bg-primary-subtle'));
-        
-        const celdas = document.querySelectorAll('.table td');
-        for(let celda of celdas) {
-            if(!celda.classList.contains('noday') && parseInt(celda.innerText) === dia) {
-                celda.classList.add('bg-primary-subtle');
-                break;
-            }
-        }
-        
-        if (tareasLocales[dia]) {
-            let htmlContent = "";
-            tareasLocales[dia].forEach(t => {
-                htmlContent += `<li class="mb-1 text-start fw-semibold text-body"><i class="bi bi-patch-check-fill text-warning me-2"></i>\${t}</li>`;
-            });
-            lista.innerHTML = htmlContent;
-        } else {
-            lista.innerHTML = `<li class="text-muted text-start"><i class="bi bi-calendar-x me-2"></i>No hay tareas críticas programadas para el día \${dia}.</li>`;
-        }
-    }
-    </script>
-    """ % str(TAREAS_DEVOPS)
-
-    plantilla_final = PLANTILLA_HTML.replace("</body>", f"{script_calendario}</body>")
+    # Instanciar calendario personalizado pasándole las tareas mapeadas
+    cal_obj = CustomHTMLCalendar(TAREAS_DEVOPS if mes_vista == 6 else {}, hoy, mes_vista, ano_vista)
+    calendario_html = cal_obj.formatmonthtable(ano_vista, mes_vista)
 
     return render_template_string(
-        plantilla_final,
+        PLANTILLA_HTML,
         estilos_css=ESTILOS_CSS,
         version=VERSION,
-        hoy=hoy,
-        calendario_html=tabla_html,
-        mes_vista=mes_vista,
-        ano_vista=ano_vista,
+        calendario_html=calendario_html,
         nombre_mes_vista=nombre_mes_vista,
+        ano_vista=ano_vista,
+        mes_vista=mes_vista,
+        hoy=hoy,
         prev_mes=prev_mes,
         prev_ano=prev_ano,
         next_mes=next_mes,
         next_ano=next_ano,
-        prev_ano_solo=prev_ano_solo,
-        next_ano_solo=next_ano_solo
+        prev_ano_solo=ano_vista - 1,
+        next_ano_solo=ano_vista + 1
     )
 
+
+@app.route('/api/tareas')
+def api_tareas():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    day = request.args.get('day', type=int)
+    
+    # Simulación de backend: Solo cargamos tareas fijas si visualizan junio (mes 6)
+    tareas = []
+    if month == 6 and day in TAREAS_DEVOPS:
+        tareas = TAREAS_DEVOPS[day]
+        
+    return jsonify({
+        "day": day,
+        "month": month,
+        "nombre_mes": MESES_ES.get(month, "este mes"),
+        "tareas": tareas
+    })
+
+
+@app.route('/api/ping')
+def api_ping():
+    host = request.args.get('host', default='')
+    # Sanitizar de forma básica la entrada para simular buenas prácticas DevOps
+    if not host or not re.match(r"^[a-zA-Z0-9.-]+$", host):
+        return jsonify({"status": "error", "message": "Host inválido"}), 400
+        
+    # Simular una respuesta de latencia de red de infraestructura
+    latencia_simulada = f"{random.randint(4, 45)} ms"
+    return jsonify({
+        "status": "success",
+        "host": host,
+        "latencia": latencia_simulada
+    })
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # host='0.0.0.0' expone la app de manera correcta para contenedores Docker
+    app.run(debug=True, host='0.0.0.0', port=5000)
