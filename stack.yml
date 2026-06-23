@@ -2,8 +2,10 @@ version: '3.8'
 
 services:
   angelo:
-    image: ghcr.io/ajvera2000/devops_15_05_26:latest # <-- Cambiado al paquete real en minúsculas
-    # Se eliminó por completo el bloque 'build:' para evitar el error en Docker Swarm
+    image: ghcr.io/ajvera2000/devops_15_05_26:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     networks:
       - traefik-public
     deploy:
@@ -24,7 +26,7 @@ services:
         - "traefik.http.routers.angelo-secure.tls=true"
         - "traefik.http.routers.angelo-secure.tls.certresolver=http"
         - "traefik.http.routers.angelo-secure.service=angelo"
-        - "traefik.http.services.angelo.loadbalancer.server.port=5000" # Asegúrate de que tu app escuche en el puerto 5000
+        - "traefik.http.services.angelo.loadbalancer.server.port=5000"
         - "traefik.docker.network=traefik-public"
 
 networks:

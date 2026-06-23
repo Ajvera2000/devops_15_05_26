@@ -94,4 +94,4 @@ jobs:
 
             # Despliegue final del stack en Swarm
             echo "==> Desplegando stack..."
-            docker stack deploy -c stack.yml --with-registry-auth angelo
+            docker stack deploy -c stack.yml borrar
