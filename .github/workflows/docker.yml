@@ -72,7 +72,7 @@ jobs:
           source: "stack.yml,Makefile"
           target: "/home/${{ secrets.VPS_USER }}/landinga"
 
-      # 7. Despliegue de los servicios (CON CAMBIOS APLICADOS)
+      # 7. Despliegue de los servicios (CON INTEGRACIÓN DE NOMBRE DE PAQUETE REAL Y CORRECCIÓN TTY)
       - name: Despliegue de los servicios
         uses: appleboy/ssh-action@v1
         with:
@@ -84,13 +84,14 @@ jobs:
             echo "✅ Desplegando servicios"
             cd ~/landinga
 
-            # Solución al error TTY: Usar parámetros directos en el login
+            # Solución TTY definitiva usando printf
             echo "==> Iniciando sesión en GHCR..."
-            docker login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GHCR_PAT }}"
+            printf "%s" "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            # Solución al error de formato: Todo el repositorio en minúsculas (ajvera2000)
+            # Corrección de nombre: Usando el paquete real 'devops_15_05_26' en minúsculas
             echo "==> Descargando la imagen..."
-            docker pull ghcr.io/ajvera2000/angelo:1.0.0
+            docker pull ghcr.io/ajvera2000/devops_15_05_26:latest
 
+            # Despliegue final del stack en Swarm
             echo "==> Desplegando stack..."
             docker stack deploy -c stack.yml --with-registry-auth angelo
